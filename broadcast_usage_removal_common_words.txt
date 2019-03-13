@@ -1,0 +1,45 @@
+///first put the common words in an array 
+var commonWords = Array("a", "an", "the", "of", "at", "is", "am","are","this","that","at",
+"in", "or", "and", "or", "not", "be", "for", "to", "it")
+
+////declare a map collection 
+val commonWordsMap = collection.mutable.Map[String, Int]()
+
+/// insert each word in the array in the map collection, to convert into a key - value pair 
+for(word <- commonWords){
+commonWordsMap(word) = 1
+println("1st  is :"+commonWordsMap(word))
+println("2nd is :"+(word))
+}
+
+commonWordsMap
+res20: scala.collection.mutable.Map[String,Int] = Map(am -> 1, is -> 1, not -> 1, of -> 1, or -> 1, be -> 1, to -> 1, that -> 1, and -> 1, for -> 1, a -> 1, in -> 
+1, at -> 1, are -> 1, an -> 1, the -> 1, it -> 1, this -> 1)
+
+var commonWordsBC = sc.broadcast(commonWordsMap)
+
+commonWordsBC.value
+res22: scala.collection.mutable.Map[String,Int] = Map(am -> 1, is -> 1, not -> 1, of -> 1, or -> 1, be -> 1, to -> 1, that -> 1, and -> 1, for -> 1, a -> 1, in -> 
+1, at -> 1, are -> 1, an -> 1, the -> 1, it -> 1, this -> 1)
+
+
+var file = sc.textFile("/data/mr/wordcount/input/big.txt")
+
+def toWords(line:String):Array[String] = {
+var words = line.split(" ")
+var output = Array[String]();
+for(word <- words){
+if(! (commonWordsBC.value contains word.toLowerCase.trim.replaceAll("[^a-z]","")))
+output = output :+ word;
+}
+return output;
+}
+var uncommonWords = file.flatMap(toWords)
+uncommonWords.take(100)
+
+uncommonWords.count()
+res24: Long = 860458       
+
+
+--------------------------------------------------
+
