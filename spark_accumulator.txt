@@ -1,0 +1,257 @@
+///counting the number of blank lines in a  file 
+sc.setLogLevel("ERROR") 
+var file = sc.textFile("/data/mr/wordcount/input/small.txt")
+var numBlankLines = sc.accumulator(0)
+
+/// this function executes the same thing as 
+///var words = file.flatMap(x=>x.split(" "))
+/// we call a function towords because we need to sum up blank spaces to the accumulator 
+def toWords(line:String): Array[String] = {
+  if(line.length == 0) 
+  {println("The present line ",line)
+   numBlankLines += 1}
+  return line.split(" ");
+}
+
+var words = file.flatMap(toWords)
+words.saveAsTextFile("words3")
+printf("Blank lines: %d", numBlankLines.value)
+//Blank lines: 24857
+
+----------- theer are 2 files - big.txt and small.txt inside input folder 
+---finding out the blank line for a particular file 
+
+sc.setLogLevel("ERROR")
+var file = sc.textFile("/data/mr/wordcount/input/big.txt")
+var numBlankLines = sc.accumulator(0)
+
+def toWords(line:String): Array[String] = {
+  if(line.length == 0) {numBlankLines += 1}
+  return line.split(" ");
+}
+
+var words = file.flatMap(toWords)
+words.saveAsTextFile("words7")
+printf("Blank lines: %d", numBlankLines.value)
+
+--------------------------------------------------------------------
+
+
+sc.setLogLevel("ERROR")
+var file = sc.textFile("/data/mr/wordcount/input/small.txt",3)
+file.glom.collect()
+var numBlankLines = sc.accumulator(0)
+
+def toWords(line:String): Array[String] = {
+  if(line.length == 0) {numBlankLines += 1}
+  return line.split(" ");
+}
+
+var words = file.flatMap(toWords)
+words.saveAsTextFile("words7")
+printf("Blank lines: %d", numBlankLines.value)
+===2
+----------------
+
+sc.setLogLevel("ERROR")
+var file = sc.textFile("/data/mr/wordcount/input/small.txt")
+file.glom.collect()
+var numBlankLines = sc.accumulator(0)
+
+def toWords(line:String): Array[String] = {
+  if(line.length == 0) {numBlankLines += 1}
+  return line.split(" ");
+}
+
+var words = file.flatMap(toWords)
+words.saveAsTextFile("words8")
+printf("Blank lines: %d", numBlankLines.value)
+===1
+
+*******************Please note if we partitions , then the blank spaces may increas 
+
+sc.setLogLevel("ERROR")
+var file = sc.textFile("/data/mr/wordcount/input/big.txt")
+file.partitions.length ###2
+var numBlankLines = sc.accumulator(0)
+
+def toWords(line:String): Array[String] = {
+  if(line.length == 0) {numBlankLines += 1}
+  return line.split(" ");
+}
+
+var words = file.flatMap(toWords)
+words.saveAsTextFile("words9")
+printf("Blank lines: %d", numBlankLines.value)
+===24587
+
+
+sc.setLogLevel("ERROR") 
+var file = sc.textFile("/data/mr/wordcount/input")
+
+
+
+####practice example 3 
+
+
+
+var file = sc.textFile("/data/mr/dna/dna.txt")
+file.partitions.length ###2
+var numBlankLines = sc.accumulator(0)
+
+def toWords(line:String): Array[String] = {
+  if(line.length == 0) {numBlankLines += 1}
+  return line.split(" ");
+}
+
+var words = file.flatMap(toWords)
+words.saveAsTextFile("words11")
+printf("Blank lines: %d", numBlankLines.value)
+===0
+
+######practice 4 
+var file = sc.textFile("/user/asmitaece887002/test_file.txt")
+file.partitions.length ###2
+var numBlankLines = sc.accumulator(0)
+
+def toWords(line:String): Array[String] = {
+  if(line.length == 0) {numBlankLines += 1}
+  return line.split(" ");
+}
+
+var words = file.flatMap(toWords)
+words.saveAsTextFile("words12")
+printf("Blank lines: %d", numBlankLines.value)
+
+
+####practice 5 -- custom accumulator 
+
+class MyComplex(var x: Int, var y: Int) extends Serializable{
+  def reset(): Unit = {
+    x = 0
+    y = 0
+  }
+  def add(p:MyComplex): MyComplex = {
+    x = x + p.x
+    y = y + p.y
+    return this
+  }
+}
+
+*************testing of my complex class***********
+var x = new MyComplex(1,2)
+x: MyComplex = MyComplex@79e90571
+
+scala> x
+res0: MyComplex = MyComplex@79e90571
+
+scala> x.reset
+scala> x.x
+res3: Int = 0
+
+scala> x.y
+res4: Int = 0
+
+scala> x.
+add   reset   x   y
+scala> x.add(new MyComplex(10,10))
+res6: MyComplex = MyComplex@79e90571
+scala> x.x
+res7: Int = 10
+scala> x.y
+res8: Int = 10s
+scala> x.add(new MyComplex(10,10))
+res9: MyComplex = MyComplex@79e90571
+scala> x.x
+res10: Int = 20
+scala> x.y
+res11: Int = 20
+scala> x.add(new MyComplex(10,10))
+res12: MyComplex = MyComplex@79e90571
+scala> x.x
+res13: Int = 30
+scala> x.y
+res14: Int = 30
+
+
+
+
+
+*******************************
+
+import org.apache.spark.util.AccumulatorV2
+object ComplexAccumulatorV2 extends AccumulatorV2[MyComplex, MyComplex] {
+    private val myc:MyComplex = new MyComplex(0,0)
+
+    def reset(): Unit = {
+        myc.reset()
+    }
+
+    def add(v: MyComplex): Unit = {
+        myc.add(v)
+    }
+    def value():MyComplex = {
+        return myc
+    }
+    def isZero(): Boolean = {
+        return (myc.x == 0 && myc.y == 0)
+    }
+    def copy():AccumulatorV2[MyComplex, MyComplex] = {
+        return ComplexAccumulatorV2
+    }
+    def merge(other:AccumulatorV2[MyComplex, MyComplex]) = {
+        myc.add(other.value)
+    }
+}
+sc.register(ComplexAccumulatorV2, "mycomplexacc")
+
+//using custom accumulator
+
+var ca = ComplexAccumulatorV2
+
+
+var rdd = sc.parallelize(1 to 5)
+var res = rdd.map(x => ca.add(new MyComplex(x,x)))
+res.count
+ca.value.x
+15
+ca.value.y
+15
+####checking reset funtion ****
+var res2= rdd.map(x=>ca.reset())
+res.count
+5
+ca.value.x
+0
+ca.value.y
+0
+
+rdd.collect()
+res25: Array[Int] = Array(1, 2, 3, 4, 5)
+
+***checking wth partitioner ******
+
+var rdd = sc.parallelize(1 to 5,3)
+rdd: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[3] at parallelize at <console>:31
+scala> rdd.collect()
+res27: Array[Int] = Array(1, 2, 3, 4, 5)
+scala> rdd.glom.collect()
+res28: Array[Array[Int]] = Array(Array(1), Array(2, 3), Array(4, 5))
+
+var ca_3 = ComplexAccumulatorV2
+
+var res_3 = rdd.map(x => ca_3.add(new MyComplex(x,x)))
+res_3.count
+res30: Long = 5
+
+res_3.glom.collect()
+res32: Array[Array[Unit]] = Array(Array(()), Array((), ()), Array((), ()))
+
+
+ca_3.value.x
+15
+ca_3.value.y
+15
+
+
+
