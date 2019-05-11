@@ -1,0 +1,150 @@
+##Example 1:Accumulator using custom datatype 
+
+///define  custom class datatype
+class MyComplex(var x: Int, var y: Int) extends Serializable{
+  def reset(): Unit = {
+    x = 0
+    y = 0
+  }
+  def add(p:MyComplex): MyComplex = {
+    x = x + p.x
+    y = y + p.y
+    return this
+  }
+}
+
+///testing of my complex class
+var x = new MyComplex(1,2)
+//x: MyComplex = MyComplex@2562e38d
+
+ x
+//res27: MyComplex = MyComplex@2562e38
+
+///call the reset function on the  complex object x 
+x.reset
+
+//check the first value of object x 
+x.x
+//res29: Int = 0
+
+
+//check the 2nd  value of object x 
+ x.y
+//res30: Int = 0
+
+
+//call the add function
+x.add(new MyComplex(10,10))
+//res31: MyComplex = MyComplex@2562e38d
+
+x.add(new MyComplex(10,10))
+
+x.add(new MyComplex(10,10))
+//res32: MyComplex = MyComplex@2562e38d
+
+x.x
+//res33: Int = 20
+
+
+x.y
+//res34: Int = 20
+
+
+
+###Example 2 :Usage of custom accumulator 
+
+
+import org.apache.spark.util.AccumulatorV2
+
+//define a  custom accumulator object 
+object ComplexAccumulatorV2 extends AccumulatorV2[MyComplex, MyComplex] {
+    private val myc:MyComplex = new MyComplex(0,0)
+
+    def reset(): Unit = {
+        myc.reset()
+    }
+
+    def add(v: MyComplex): Unit = {
+        myc.add(v)
+    }
+    def value():MyComplex = {
+        return myc
+    }
+    def isZero(): Boolean = {
+        return (myc.x == 0 && myc.y == 0)
+    }
+    def copy():AccumulatorV2[MyComplex, MyComplex] = {
+        return ComplexAccumulatorV2
+    }
+    def merge(other:AccumulatorV2[MyComplex, MyComplex]) = {
+        myc.add(other.value)
+    }
+}
+sc.register(ComplexAccumulatorV2, "mycomplexacc")
+
+//using custom accumulator
+
+var ca = ComplexAccumulatorV2
+
+//declare a  RDD with parallelize 
+var rdd = sc.parallelize(1 to 5)
+var res = rdd.map(x => ca.add(new MyComplex(x,x)))
+
+res.count
+//Long = 5
+
+ca.value.x
+//15
+ca.value.y
+///15
+
+///checking reset funtion 
+var res2= rdd.map(x=>ca.reset())
+res2.count
+//res41: Long = 5
+
+ca.value.x
+//res42: Int = 0
+
+ca.value.y
+//res43: Int = 0
+
+
+rdd.collect()
+//res44: Array[Int] = Array(1, 2, 3, 4, 5)
+
+##Example 3 :checking with partitioner 
+
+var rdd = sc.parallelize(1 to 5,3)
+//rdd: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[36] at parallelize at <console>:25
+
+ rdd.collect()
+//res45: Array[Int] = Array(1, 2, 3, 4, 5)
+
+ rdd.glom.collect()
+//res46: Array[Array[Int]] = Array(Array(1), Array(2, 3), Array(4, 5))
+
+var ca_3 = ComplexAccumulatorV2
+//ca_3: ComplexAccumulatorV2.type = ComplexAccumulatorV2$(id: 209, name: Some(mycomplexacc), value: MyComplex@17863468)
+
+var res_3 = rdd.map(x => ca_3.add(new MyComplex(x,x)))
+
+//res_3: org.apache.spark.rdd.RDD[Unit] = MapPartitionsRDD[39] at map at <console>:31
+
+res_3.count
+//res48: Long = 5
+
+
+res_3.glom.collect()
+//res49: Array[Array[Unit]] = Array(Array(()), Array((), ()), Array((), ()))
+
+
+
+ca_3.value.x
+//res50: Int = 15
+
+ca_3.value.y
+///res51: Int = 15
+
+
+
