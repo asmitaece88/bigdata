@@ -1,0 +1,73 @@
+
+///first put the common words in an array 
+var commonWords = Array("a", "an", "the", "of", "at", "is", "am","are","this","that","at",
+"in", "or", "and", "or", "not", "be", "for", "to", "it")
+
+////declare a map collection 
+val commonWordsMap = collection.mutable.Map[String, Int]()
+
+/// insert each word in the array in the map collection, to convert into a key - value pair 
+for(word <- commonWords){
+commonWordsMap(word) = 1
+println("word is  :"+(word))
+}
+
+//word is  :a
+//word is  :an
+//word is  :the
+//word is  :of
+//word is  :at
+//word is  :is
+//word is  :am
+//word is  :are
+//word is  :this
+//word is  :that
+//word is  :at
+//word is  :in
+//word is  :or
+//word is  :and
+//word is  :or
+//word is  :not
+//word is  :be
+//word is  :for
+//word is  :to
+//word is  :it
+
+commonWordsMap
+//res5: scala.collection.mutable.Map[String,Int] = Map(am -> 1, is -> 1, not -> 1, of -> 1, or -> 1, be -> 1, to -> 1, that -> 1, and -> 1, for -> 1, a -> 
+//1, in -> 1, at -> 1, are -> 1, an -> 1, the -> 1, it -> 1, this -> 1)
+
+
+//declare the broadcast 
+var commonWordsBC = sc.broadcast(commonWordsMap)
+
+
+//check the value 
+commonWordsBC.value
+
+//res6: scala.collection.mutable.Map[String,Int] = Map(am -> 1, is -> 1, not -> 1, of -> 1, or -> 1, be -> 1, to -> 1, that -> 1, and -> 1, for -> 1, a -> 
+//1, in -> 1, at -> 1, are -> 1, an -> 1, the -> 1, it -> 1, this -> 1)
+
+
+//read the data file from the server 
+
+
+var file = sc.textFile("/data/mr/wordcount/input/big.txt")
+
+///function to convert lines to words  and then remove the common words mentioned above 
+def toWords(line:String):Array[String] = {
+var words = line.split(" ")
+var output = Array[String]();
+for(word <- words){
+if(! (commonWordsBC.value contains word.toLowerCase.trim.replaceAll("[^a-z]","")))
+output = output :+ word;
+}
+return output;
+}
+
+//apply the function on the file RDD 
+var uncommonWords = file.flatMap(toWords)
+uncommonWords.take(100)
+
+uncommonWords.count()
+//res24: Long = 860458       
