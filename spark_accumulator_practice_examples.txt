@@ -1,0 +1,41 @@
+/// Example1 :counting the number of blank lines in a small  file 
+sc.setLogLevel("ERROR") 
+var file = sc.textFile("/data/mr/wordcount/input/small.txt")
+
+//declare an accumulator to get the number of blank lines 
+var numBlankLines = sc.accumulator(0)
+
+/// this function executes the same thing as 
+///var words = file.flatMap(x=>x.split(" "))
+/// we call a function towords because we need to sum up blank spaces to the accumulator 
+def toWords(line:String): Array[String] = {
+  if(line.length == 0) 
+  {println("The present line ",line)
+   numBlankLines += 1}
+  return line.split(" ");
+}
+
+//using flatmap over accumulator variable 
+var words = file.flatMap(toWords)
+words.saveAsTextFile("words_doc")
+//(The present line ,)
+printf("Blank lines: %d", numBlankLines.value)
+//Blank lines: 1
+----------------------------------------------------------------------------------------------------------
+
+/// Example 2 :counting the number of blank lines in a big text  file 
+
+sc.setLogLevel("ERROR")
+var file = sc.textFile("/data/mr/wordcount/input/big.txt")
+file.partitions.length 
+var numBlankLines = sc.accumulator(0)
+
+def toWords(line:String): Array[String] = {
+  if(line.length == 0) {numBlankLines += 1}
+  return line.split(" ");
+}
+
+var words = file.flatMap(toWords)
+words.saveAsTextFile("words_doc_chck")
+printf("Blank lines: %d", numBlankLines.value)
+//24587
