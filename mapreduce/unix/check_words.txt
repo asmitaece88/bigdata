@@ -1,7 +1,0 @@
-My name is Asmita Chatterjee.
-I am a senior data scientist in IBM Kolkata.
-I have designed an analytical Ml tool , which can predict the chances of disease 
-a person can contract  in his eyes , based on CVI contact lenses, based on 
-his blood group , genetic factors and alllergic symtoms.
-I have also designed a tool , which can forecast the total number of jobs India 
-can created in next 5 months , in remote villages.
