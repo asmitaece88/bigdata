@@ -66,3 +66,10 @@ https://github.com/asmitaece88/bigdata/blob/master/spark-sql-examples/spark-sql-
 
 ### Demonstration  of using nodejs  and socket.IO to listen -to send and receive any user messages
 https://github.com/asmitaece88/bigdata/blob/master/socket_IO.docx
+
+## Pyspark
+## demonstration of a simple Pyspark queue RDD streaming 
+https://github.com/asmitaece88/bigdata/blob/master/pyspark/Pyspark_streaming_udemy.ipynb
+## demontsration of a in/nasa_19950701.tsv" file contains 10000 log lines from one of NASA's apache server for July 1st, 1995.
+## in/nasa_19950801.tsv" file contains 10000 log lines for August 1st, 1995
+##  Create a Spark program to generate a new RDD which contains the hosts which are accessed on BOTH days.
